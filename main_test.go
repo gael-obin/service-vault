@@ -57,6 +57,18 @@ func TestAgentVersion(t *testing.T) {
 	require.Equal(t, manifest.Version, agent.Version)
 }
 
+func TestCreatedEndpointAccess(t *testing.T) {
+	ctx := context.Background()
+	builder := NewBuilder()
+	require.NoError(t, builder.HeadlessLoad(ctx, &basev0.ServiceIdentity{
+		Workspace: "workspace", Module: "secrets", Name: "vault",
+	}))
+	require.NoError(t, builder.CreateEndpoints(ctx))
+	require.NoError(t, resources.Validate(builder.HttpEndpoint))
+	require.Equal(t, resources.VisibilityInternal, builder.HttpEndpoint.GetVisibility())
+	require.Equal(t, []string{resources.AllowAllModules}, builder.HttpEndpoint.GetAllowModules())
+}
+
 func TestConnectionConfigurationTokenProfiles(t *testing.T) {
 	service := NewService()
 	service.Identity = &resources.ServiceIdentity{Workspace: "workspace", Module: "module", Name: "vault"}
